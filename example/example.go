@@ -7,10 +7,12 @@ import (
 )
 
 func main() {
-	gemini.HandleFunc("/", func(w *gemini.Response, r *gemini.Request) {
-		w.SetStatus(gemini.StatusSuccess, "text/gemini")
-		w.Write([]byte("# Test Response"))
-	})
+	// gemini.HandleFunc("/", func(w *gemini.Response, r *gemini.Request) {
+	// 	w.SetStatus(gemini.StatusSuccess, "text/gemini")
+	// 	w.Write([]byte("# Test Response"))
+	// })
+
+	gemini.HandleFunc("/assets", gemini.StripPrefix("/assets", gemini.FileServer("./assets")))
 
 	log.Fatal(gemini.ListenAndServeTLS(":1965", "localhost.crt", "localhost.key"))
 }

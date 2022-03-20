@@ -3,9 +3,15 @@ package gemini
 import (
 	"bufio"
 	"crypto/tls"
+	"io"
 	"log"
 	"net"
 	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/h2non/filetype"
 )
 
 const (
@@ -91,4 +97,34 @@ func (s *Server) geminiHandler(conn net.Conn) {
 	req.URL = u
 
 	s.Handler.ServeGemini(&resp, &req)
+}
+
+func FileServer(path string) Handlerfunc {
+	return func(w *Response, r *Request) {
+		filePath := r.URL.Path
+		if !strings.HasPrefix(filePath, "/") {
+			filePath = "/" + filePath
+			r.URL.Path = filePath
+		}
+		f, err := os.Open(filepath.Join(path, filePath))
+		if err != nil {
+			log.Println(err)
+			w.SetStatus(StatusPermanentFailure, "File not found")
+			w.SendStatus()
+		}
+		defer f.Close()
+
+		head := make([]byte, 261)
+		f.Read(head)
+		f.Seek(0, 0)
+		kind, _ := filetype.Match(head)
+		w.SetStatus(StatusSuccess, kind.MIME.Value)
+		w.SendStatus()
+		_, err = io.Copy(w.Body, f)
+		if err != nil {
+			log.Println(err)
+			w.SetStatus(StatusPermanentFailure, "Could not read file")
+			w.SendStatus()
+		}
+	}
 }

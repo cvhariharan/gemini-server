@@ -77,11 +77,24 @@ func (s *SimpleHandler) ServeGemini(w *Response, r *Request) {
 	}
 }
 
-func HandleFunc(p string, h Handlerfunc) {
+func HandleFunc(p string, h Handler) {
 	DefaultHandler.pathHandler = append(DefaultHandler.pathHandler, Path{handler: h, path: p})
 }
 
 func ListenAndServeTLS(addr string, certFile, keyFile string) error {
 	s := Server{Addr: addr, Handler: DefaultHandler}
 	return s.ListenAndServeTLS(certFile, keyFile)
+}
+
+func StripPrefix(prefix string, handler Handler) Handler {
+	if prefix == "" {
+		return handler
+	}
+
+	return Handlerfunc(func(w *Response, r *Request) {
+		path := strings.TrimPrefix(r.URL.Path, prefix)
+		r.URL.Path = path
+
+		handler.ServeGemini(w, r)
+	})
 }
