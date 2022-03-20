@@ -99,8 +99,8 @@ func (s *Server) geminiHandler(conn net.Conn) {
 	s.Handler.ServeGemini(&resp, &req)
 }
 
-func FileServer(path string) Handlerfunc {
-	return func(w *Response, r *Request) {
+func FileServer(path string) Handler {
+	return Handlerfunc(func(w *Response, r *Request) {
 		filePath := r.URL.Path
 		if !strings.HasPrefix(filePath, "/") {
 			filePath = "/" + filePath
@@ -126,5 +126,5 @@ func FileServer(path string) Handlerfunc {
 			w.SetStatus(StatusPermanentFailure, "Could not read file")
 			w.SendStatus()
 		}
-	}
+	})
 }

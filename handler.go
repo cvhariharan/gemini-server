@@ -77,7 +77,11 @@ func (s *SimpleHandler) ServeGemini(w *Response, r *Request) {
 	}
 }
 
-func HandleFunc(p string, h Handler) {
+func HandleFunc(p string, h func(*Response, *Request)) {
+	DefaultHandler.pathHandler = append(DefaultHandler.pathHandler, Path{handler: Handlerfunc(h), path: p})
+}
+
+func Handle(p string, h Handler) {
 	DefaultHandler.pathHandler = append(DefaultHandler.pathHandler, Path{handler: h, path: p})
 }
 
